@@ -1,6 +1,6 @@
-﻿namespace ServiceTemplate.Models
+﻿namespace BiddingService.Models
 {
-    public class ExampleDTO
+    public class BiddingDTO
     {
         public int Id { get; set; }
         public DateTime Time { get; set; }

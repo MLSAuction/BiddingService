@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceTemplate.Repositories;
+using BiddingService.Repositories;
 
-namespace ServiceTemplate.Controllers
+namespace BiddingService.Controllers
 {
-    public class ServiceController : Controller
+    public class BiddingController : Controller
     {
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
-        private readonly ServiceRepository _repository;
+        private readonly BiddingRepository _repository;
 
-        ServiceController (ILogger logger, IConfiguration configuration, ServiceRepository repository)
+        BiddingController (ILogger logger, IConfiguration configuration, BiddingRepository repository)
         {
             _logger = logger;
             _configuration = configuration;

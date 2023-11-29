@@ -1,8 +1,16 @@
-﻿namespace BiddingService.Models
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+
+namespace BiddingService.Models
 {
     public class BiddingDTO
     {
-        public int Id { get; set; }
+        [BsonId]
+        public int BidId { get; set; }
+        public int UserId {get; set;}
+        public int AuctionId {get; set;}
+        public int Price { get; set; }
         public DateTime Time { get; set; }
     }
 }

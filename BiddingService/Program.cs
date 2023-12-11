@@ -1,29 +1,59 @@
+using BiddingService;
 using BiddingService.Repositories;
-using BiddingService.Repositories.DBContext;
+using VaultSharp;
+using VaultSharp.V1.AuthMethods.Token;
+using VaultSharp.V1.AuthMethods;
+using VaultSharp.V1.Commons;
+using NLog;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+var logger = NLog.LogManager.Setup()
+                            .LoadConfigurationFromAppSettings()
+                            .GetCurrentClassLogger();
 
-// Add services to the container.
+logger.Info($"Bidding worker service running at {DateTimeOffset.Now}");
 
-builder.Services.AddControllers();
-builder.Services.AddScoped<MongoDBContext>();
-builder.Services.AddScoped<IBiddingRepository, BiddingRepository>();
+#region Vault
 
+//var EndPoint = "https://vault";
+var EndPoint = "https://localhost:8251";
+var httpClientHandler = new HttpClientHandler();
+httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => { return true; };
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+IAuthMethodInfo authMethod = new TokenAuthMethodInfo("00000000-0000-0000-0000-000000000000");
 
-var app = builder.Build();
+var vaultClientSettings = new VaultClientSettings(EndPoint, authMethod)
+{
+    Namespace = "",
+    MyHttpClientProviderFunc = handler => new HttpClient(httpClientHandler) { BaseAddress = new Uri(EndPoint) }
+};
 
-// Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI();
+IVaultClient vaultClient = new VaultClient(vaultClientSettings);
 
-app.UseHttpsRedirection();
+Secret<SecretData> vaultSecret = await vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(path: "Secrets", mountPoint: "secret");
 
-app.UseAuthorization();
+#endregion   
 
-app.MapControllers();
+try
+{
+    IHost host = Host.CreateDefaultBuilder(args)
+                     .ConfigureServices(services => 
+                     { 
+                         services.AddHostedService<Worker>(); 
+                         services.AddScoped<IBiddingRepository, BiddingRepository>();
+                         services.AddSingleton<Secret<SecretData>>(vaultSecret);
+                     })
+                     .UseNLog()
+                     .Build();
 
-app.Run();
+    host.Run();
+}
+catch (Exception ex)
+{
+    logger.Error(ex, $"Bidding worker service encountered a fatal error, shutting down at {DateTimeOffset.Now}");
+    throw;
+}
+finally
+{
+    NLog.LogManager.Shutdown();
+}

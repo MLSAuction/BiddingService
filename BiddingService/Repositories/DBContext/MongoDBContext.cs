@@ -1,5 +1,5 @@
 using MongoDB.Driver;
-using BiddingService.Models;
+using VaultSharp.V1.Commons;
 
 namespace BiddingService.Repositories.DBContext
 {
@@ -9,10 +9,10 @@ namespace BiddingService.Repositories.DBContext
         private IMongoClient _client;
         IConfiguration _configuration;
 
-        public MongoDBContext(IConfiguration configuration)
+        public MongoDBContext(IConfiguration configuration, Secret<SecretData> secret)
         {
             _configuration = configuration;
-            _client = new MongoClient(_configuration["ConnectionString"]);
+            _client = new MongoClient(secret.Data.Data["ConnectionString"].ToString());
             _database = _client.GetDatabase(_configuration["DatabaseName"]);
         }
 

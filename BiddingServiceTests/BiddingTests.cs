@@ -31,7 +31,7 @@ namespace BiddingServiceTests
         {
             // Arrange
             var bidId = 1;
-            var biddingDto = new BiddingDTO { BidId = bidId, UserId = 1, AuctionId = 1, Price = 100, Time = DateTime.Now };
+            var biddingDto = new BiddingDTO { BidId = bidId, UserId = 1, AuctionId = 1, Price = 100, TimePlaced = DateTime.Now };
 
             _biddingRepositoryMock.Setup(repo => repo.GetBid(bidId)).Returns(biddingDto);
 

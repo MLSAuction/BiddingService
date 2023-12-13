@@ -6,6 +6,7 @@ using VaultSharp.V1.AuthMethods;
 using VaultSharp.V1.Commons;
 using NLog;
 using NLog.Web;
+using BiddingService.Repositories.DBContext;
 
 var logger = NLog.LogManager.Setup()
                             .LoadConfigurationFromAppSettings()
@@ -38,10 +39,11 @@ try
 {
     IHost host = Host.CreateDefaultBuilder(args)
                      .ConfigureServices(services => 
-                     { 
-                         services.AddHostedService<Worker>(); 
-                         services.AddScoped<IBiddingRepository, BiddingRepository>();
+                     {
                          services.AddSingleton<Secret<SecretData>>(vaultSecret);
+                         services.AddSingleton<MongoDBContext>();
+                         services.AddSingleton<IBiddingRepository, BiddingRepository>();
+                         services.AddHostedService<Worker>();
                      })
                      .UseNLog()
                      .Build();

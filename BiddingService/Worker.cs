@@ -54,7 +54,7 @@ namespace BiddingService
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation($"Worker running at: {DateTimeOffset.Now}");
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(200000, stoppingToken);
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text;
 using BiddingService.Repositories;
 using Microsoft.AspNetCore.DataProtection;
+using VaultSharp.V1.Commons;
 
 namespace BiddingService
 {
@@ -14,17 +15,19 @@ namespace BiddingService
         private readonly ILogger<Worker> _logger;
         private readonly IConfiguration _configuration;
         private readonly IBiddingRepository _repository;
+        private readonly Secret<SecretData> _secret;
 
-        public Worker(ILogger<Worker> logger, IConfiguration configuration, IBiddingRepository repository)
+        public Worker(ILogger<Worker> logger, IConfiguration configuration, IBiddingRepository repository, Secret<SecretData> secret)
         {
             _logger = logger;
             _configuration = configuration;
             _repository = repository;
+            _secret = secret;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var factory = new ConnectionFactory { HostName = _configuration["MqHost"] };
+            var factory = new ConnectionFactory { HostName = _secret.Data.Data["MqHost"].ToString() };
             using var connection = factory.CreateConnection();
 
             using var bidChannel = connection.CreateModel();

@@ -16,8 +16,7 @@ logger.Info($"Bidding worker service running at {DateTimeOffset.Now}");
 
 #region Vault
 
-//var EndPoint = "https://vault";
-var EndPoint = "https://localhost:8251";
+var EndPoint = Environment.GetEnvironmentVariable("vaultUrl");
 var httpClientHandler = new HttpClientHandler();
 httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => { return true; };
 

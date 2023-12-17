@@ -15,19 +15,17 @@ namespace BiddingService
         private readonly ILogger<Worker> _logger;
         private readonly IConfiguration _configuration;
         private readonly IBiddingRepository _repository;
-        private readonly Secret<SecretData> _secret;
 
-        public Worker(ILogger<Worker> logger, IConfiguration configuration, IBiddingRepository repository, Secret<SecretData> secret)
+        public Worker(ILogger<Worker> logger, IConfiguration configuration, IBiddingRepository repository)
         {
             _logger = logger;
             _configuration = configuration;
             _repository = repository;
-            _secret = secret;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var factory = new ConnectionFactory { HostName = _secret.Data.Data["MqHost"].ToString() };
+            var factory = new ConnectionFactory { HostName = Environment.GetEnvironmentVariable("MqHost") };
             using var connection = factory.CreateConnection();
 
             using var bidChannel = connection.CreateModel();

@@ -14,23 +14,36 @@ var logger = NLog.LogManager.Setup()
 
 logger.Info($"Bidding worker service running at {DateTimeOffset.Now}");
 
-#region Vault
+#region Configuration
 
-var EndPoint = Environment.GetEnvironmentVariable("vaultUrl");
+var vaultUrl = Environment.GetEnvironmentVariable("vaultUrl");
+
+if (string.IsNullOrEmpty(vaultUrl)) //azure flow
+{
+// need ConnectionString, DatabaseName, jwtSecret, jwtIssuer, MqHost and LokiEndpoint in bicep env variables
+}
+else //compose flow
+{
 var httpClientHandler = new HttpClientHandler();
 httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => { return true; };
 
-IAuthMethodInfo authMethod = new TokenAuthMethodInfo("00000000-0000-0000-0000-000000000000");
+IAuthMethodInfo authMethod = new TokenAuthMethodInfo("00000000-0000-0000-0000-000000000000"); //undersøg om er korrekt
 
-var vaultClientSettings = new VaultClientSettings(EndPoint, authMethod)
+var vaultClientSettings = new VaultClientSettings(vaultUrl, authMethod)
 {
-    Namespace = "",
-    MyHttpClientProviderFunc = handler => new HttpClient(httpClientHandler) { BaseAddress = new Uri(EndPoint) }
+Namespace = "",
+MyHttpClientProviderFunc = handler => new HttpClient(httpClientHandler) { BaseAddress = new Uri(vaultUrl) }
 };
 
 IVaultClient vaultClient = new VaultClient(vaultClientSettings);
 
 Secret<SecretData> vaultSecret = await vaultClient.V1.Secrets.KeyValue.V2.ReadSecretAsync(path: "Secrets", mountPoint: "secret");
+
+Environment.SetEnvironmentVariable("LokiEndpoint", "http://loki:3100"); //compose
+Environment.SetEnvironmentVariable("ConnectionString", vaultSecret.Data.Data["ConnectionString"].ToString());
+Environment.SetEnvironmentVariable("DatabaseName", vaultSecret.Data.Data["DatabaseName"].ToString());
+Environment.SetEnvironmentVariable("MqHost", vaultSecret.Data.Data["MqHost"].ToString());
+}
 
 #endregion   
 
@@ -39,7 +52,6 @@ try
     IHost host = Host.CreateDefaultBuilder(args)
                      .ConfigureServices(services => 
                      {
-                         services.AddSingleton<Secret<SecretData>>(vaultSecret);
                          services.AddSingleton<MongoDBContext>();
                          services.AddSingleton<IBiddingRepository, BiddingRepository>();
                          services.AddHostedService<Worker>();

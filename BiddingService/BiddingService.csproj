@@ -5,6 +5,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-BiddingService-83ec7605-c631-4743-bd1d-dc0191a8555c</UserSecretsId>
+	<Company>MLS</Company>
+	<Authors>Magnus, Leo, Mads, Lucas</Authors>
+	<Copyright>MIT</Copyright>
+	<AssemblyVersion>1.0.1</AssemblyVersion>
+	<FileVersion>1.0.1</FileVersion>
+	<InformationalVersion>1.0.1</InformationalVersion>
+	<Description>
+		1.0.0 Initial version
+		1.0.1 Updated NLog.config
+	</Description>
   </PropertyGroup>
 
   <ItemGroup>
